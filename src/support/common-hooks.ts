@@ -17,6 +17,18 @@ import { ensureDir } from 'fs-extra';
 let browser: ChromiumBrowser | FirefoxBrowser | WebKitBrowser;
 const tracesDir = 'traces';
 
+const caps = {
+  browser: "chrome",
+  os: "osx",
+  os_version: "catalina",
+  build: "CC PW Parallel",
+  "browserstack.username": process.env.BROWSERSTACK_USERNAME || "YOUR_USERNAME",
+  "browserstack.accessKey":
+    process.env.BROWSERSTACK_ACCESS_KEY || "YOUR_ACCESS_KEY",
+  "browserstack.local": process.env.BROWSERSTACK_LOCAL || false,
+};
+
+
 declare global {
   // eslint-disable-next-line no-var
   var browser: ChromiumBrowser | FirefoxBrowser | WebKitBrowser;
@@ -51,6 +63,11 @@ Before(async function (this: ICustomWorld, { pickle }: ITestCaseHookParameter) {
   this.startTime = new Date();
   this.testName = pickle.name.replace(/\W/g, '-');
   // customize the [browser context](https://playwright.dev/docs/next/api/class-browser#browsernewcontextoptions)
+  browser = await chromium.connect({
+      wsEndpoint:
+        `wss://cdp.browserstack.com/playwright?caps=` +
+        `${encodeURIComponent(JSON.stringify(caps))}`,
+    });
   this.context = await browser.newContext({
     acceptDownloads: true,
     recordVideo: process.env.PWVIDEO ? { dir: 'screenshots' } : undefined,
